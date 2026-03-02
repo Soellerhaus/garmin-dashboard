@@ -1,0 +1,45 @@
+# ============================================================
+# Passwortschutz für das Garmin Dashboard
+# ============================================================
+#
+# ANLEITUNG:
+#
+# 1. .htpasswd-Datei erstellen (AUSSERHALB des Web-Verzeichnisses!):
+#
+#    Linux/Mac:
+#      htpasswd -c /home/DEINUSER/.htpasswd benutzername
+#
+#    Windows (mit Apache):
+#      htpasswd.exe -c C:\sicherer-pfad\.htpasswd benutzername
+#
+#    Online-Generator:
+#      https://htpasswdgenerator.de/
+#      (Ergebnis in .htpasswd-Datei speichern)
+#
+# 2. Den Pfad unten bei AuthUserFile anpassen
+#
+# 3. Apache-Modul mod_auth_basic muss aktiv sein
+#
+# ============================================================
+
+# Passwortschutz aktivieren
+AuthType Basic
+AuthName "Garmin Dashboard – Zugang erforderlich"
+
+# WICHTIG: Absoluten Pfad zur .htpasswd-Datei angeben!
+# Diesen Pfad musst du an dein System anpassen:
+AuthUserFile /home/DEINUSER/.htpasswd
+
+Require valid-user
+
+# ============================================================
+# Zusätzliche Sicherheit
+# ============================================================
+
+# Zugriff auf versteckte Dateien verhindern
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+# Verzeichnislisting deaktivieren
+Options -Indexes
