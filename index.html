@@ -83,6 +83,85 @@
       color: #fff;
     }
 
+    /* ── Datum-Range ────────────────────────────────── */
+    .date-range-bar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .date-range-bar input[type="date"] {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-family: inherit;
+    }
+    .date-range-bar button {
+      background: var(--accent);
+      border: none;
+      color: #fff;
+      padding: 6px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-family: inherit;
+    }
+    .date-range-bar button:hover { opacity: 0.85; }
+    .date-range-bar span { color: var(--text-muted); font-size: 0.85rem; }
+
+    /* ── Aktivitaeten-Suche ──────────────────────────── */
+    .activity-section {
+      margin-top: 30px;
+    }
+    .activity-search-bar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+    .activity-search-bar input {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-family: inherit;
+    }
+    .activity-search-bar input[type="text"] { width: 200px; }
+    .activity-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    .activity-table th {
+      text-align: left;
+      padding: 8px 10px;
+      border-bottom: 2px solid var(--card-border);
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .activity-table td {
+      padding: 7px 10px;
+      border-bottom: 1px solid var(--card-border);
+    }
+    .activity-table tr:hover { background: rgba(255,255,255,0.03); }
+    .activity-type {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      background: rgba(99, 102, 241, 0.2);
+      color: #a5b4fc;
+    }
+
     /* ── Gewicht-Eingabe ─────────────────────────────── */
     .weight-input-bar {
       display: flex;
@@ -311,6 +390,15 @@
       <button class="range-btn active" data-days="1460">4 Jahre</button>
     </div>
 
+    <!-- Datum von-bis -->
+    <div class="date-range-bar">
+      <span>Von</span>
+      <input type="date" id="dateFrom">
+      <span>Bis</span>
+      <input type="date" id="dateTo">
+      <button onclick="applyDateRange()">Filtern</button>
+    </div>
+
     <!-- Übersichtskarten -->
     <div class="cards">
       <div class="card hr">
@@ -407,11 +495,20 @@
       </div>
     </div>
 
-    <!-- Aktivitäten -->
-    <div class="activities-section">
-      <h3>Letzte 20 Aktivitäten</h3>
-      <div class="table-wrap">
-        <table>
+    <!-- Aktivitäten / Trail-Suche -->
+    <div class="activity-section">
+      <h2 style="text-align:center; margin-bottom:15px; color:var(--text);">Aktivitaeten</h2>
+      <div class="activity-search-bar">
+        <input type="text" id="actSearch" placeholder="Suche (z.B. Trail, Langlauf...)">
+        <span>Von</span>
+        <input type="date" id="actDateFrom">
+        <span>Bis</span>
+        <input type="date" id="actDateTo">
+        <button onclick="searchActivities()" style="background:var(--accent); border:none; color:#fff; padding:8px 14px; border-radius:8px; cursor:pointer; font-family:inherit;">Suchen</button>
+      </div>
+      <div id="actResultInfo" style="text-align:center; color:var(--text-muted); margin-bottom:10px; font-size:0.85rem;"></div>
+      <div class="chart-box" style="overflow-x:auto; padding:10px 15px;">
+        <table class="activity-table">
           <thead>
             <tr>
               <th>Datum</th>
@@ -419,12 +516,11 @@
               <th>Name</th>
               <th>Dauer</th>
               <th>Distanz</th>
-              <th>&Oslash; HR</th>
-              <th>Kalorien</th>
+              <th>&#216; HR</th>
+              <th>kcal</th>
             </tr>
           </thead>
-          <tbody id="activitiesBody">
-          </tbody>
+          <tbody id="activitiesBody"></tbody>
         </table>
       </div>
     </div>
@@ -639,7 +735,7 @@ function createLineChart(canvasId, labels, data, color, fillColor, count) {
 }
 
 // ── Gewichts-Charts aufbauen ─────────────────────────────────────
-function buildWeightCharts(days) {
+function buildWeightCharts(days, fromDate, toDate) {
   var section = document.getElementById('weightSection');
   var cardBox = document.getElementById('cardWeightBox');
   if (!weightData || !weightData.weights || weightData.weights.length === 0) {
@@ -654,7 +750,9 @@ function buildWeightCharts(days) {
   var weights = weightData.weights;
 
   // Nach Zeitraum filtern
-  if (days > 0) {
+  if (fromDate && toDate) {
+    weights = weights.filter(function(w) { return w.date >= fromDate && w.date <= toDate; });
+  } else if (days > 0) {
     var cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - days);
     var cutoffStr = cutoff.toISOString().slice(0, 10);
@@ -932,28 +1030,146 @@ function buildDashboard(days) {
   // ── Gewichts-Charts (Huawei Health) ─────────────────
   buildWeightCharts(days);
 
-  // ── Aktivitäten-Tabelle ──────────────────────────────
-  var activities = allData.activities || [];
+  // ── Aktivitaeten: letzte 20 anzeigen ────────────────
+  showActivities(allData.activities || [], 20);
+}
+
+/** Aktivitaets-Typ lesbar machen */
+function formatType(type) {
+  var map = {
+    'trail_running': 'Trail Run',
+    'strength_training': 'Kraft',
+    'treadmill_running': 'Laufband',
+    'pilates': 'Pilates',
+    'skate_skiing_ws': 'Langlauf Skating',
+    'indoor_cardio': 'Indoor Cardio',
+    'resort_skiing': 'Skifahren',
+    'yoga': 'Yoga',
+    'running': 'Laufen',
+    'cycling': 'Radfahren',
+    'hiking': 'Wandern',
+    'multi_sport': 'Multi-Sport',
+    'e_bike_fitness': 'E-Bike',
+    'snow_shoe_ws': 'Schneeschuh',
+    'cross_country_skiing_ws': 'Langlauf Klassisch',
+    'hiit': 'HIIT',
+    'lap_swimming': 'Schwimmen',
+    'tennis_v2': 'Tennis',
+    'indoor_rowing': 'Rudern',
+    'mountain_biking': 'Mountainbike',
+  };
+  return map[type] || type;
+}
+
+/** Aktivitaeten in Tabelle anzeigen */
+function showActivities(acts, limit) {
   var tbody = document.getElementById('activitiesBody');
+  var info = document.getElementById('actResultInfo');
   tbody.innerHTML = '';
 
-  if (activities.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);">Keine Aktivitäten im Zeitraum</td></tr>';
-  } else {
-    var letzte = activities.slice(0, 20);
-    letzte.forEach(function(a) {
-      var tr = document.createElement('tr');
-      tr.innerHTML =
-        '<td>' + formatDateFull(a.date) + '</td>' +
-        '<td>' + (a.type || '--') + '</td>' +
-        '<td>' + (a.name || '--') + '</td>' +
-        '<td>' + (a.duration_minutes != null ? Math.round(a.duration_minutes) + ' min' : '--') + '</td>' +
-        '<td>' + (a.distance_km != null ? a.distance_km + ' km' : '--') + '</td>' +
-        '<td>' + (a.avg_hr != null ? Math.round(a.avg_hr) + ' bpm' : '--') + '</td>' +
-        '<td>' + (a.calories != null ? Math.round(a.calories) + ' kcal' : '--') + '</td>';
-      tbody.appendChild(tr);
-    });
+  if (!acts || acts.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);">Keine Aktivitaeten gefunden</td></tr>';
+    info.textContent = '';
+    return;
   }
+
+  var show = limit ? acts.slice(0, limit) : acts;
+  info.textContent = show.length + ' von ' + acts.length + ' Aktivitaeten';
+
+  show.forEach(function(a) {
+    var tr = document.createElement('tr');
+    var dauer = a.duration_minutes != null ? Math.round(a.duration_minutes) + ' min' : '--';
+    var dist = a.distance_km != null ? a.distance_km + ' km' : '--';
+    var hr = a.avg_hr != null ? Math.round(a.avg_hr) + ' bpm' : '--';
+    var cal = a.calories != null ? Math.round(a.calories) : '--';
+    tr.innerHTML =
+      '<td>' + formatDateFull(a.date) + '</td>' +
+      '<td><span class="activity-type">' + formatType(a.type) + '</span></td>' +
+      '<td>' + (a.name || '--') + '</td>' +
+      '<td>' + dauer + '</td>' +
+      '<td>' + dist + '</td>' +
+      '<td>' + hr + '</td>' +
+      '<td>' + cal + '</td>';
+    tbody.appendChild(tr);
+  });
+}
+
+/** Aktivitaeten suchen/filtern */
+function searchActivities() {
+  var query = document.getElementById('actSearch').value.toLowerCase().trim();
+  var fromDate = document.getElementById('actDateFrom').value;
+  var toDate = document.getElementById('actDateTo').value;
+  var all = allData.activities || [];
+
+  var filtered = all.filter(function(a) {
+    // Datum-Filter
+    if (fromDate && a.date < fromDate) return false;
+    if (toDate && a.date > toDate) return false;
+    // Suchbegriff
+    if (query) {
+      var text = ((a.name || '') + ' ' + (a.type || '') + ' ' + formatType(a.type)).toLowerCase();
+      return text.indexOf(query) >= 0;
+    }
+    return true;
+  });
+
+  showActivities(filtered, 100);
+}
+
+/** Datum-Range auf alle Charts anwenden */
+function applyDateRange() {
+  var fromDate = document.getElementById('dateFrom').value;
+  var toDate = document.getElementById('dateTo').value;
+  if (!fromDate || !toDate) return;
+
+  // Buttons deaktivieren
+  document.querySelectorAll('.range-btn').forEach(function(b) { b.classList.remove('active'); });
+
+  // Custom-Zeitraum berechnen
+  var daily = allData.daily.filter(function(d) {
+    return d.date >= fromDate && d.date <= toDate;
+  });
+
+  // Dashboard mit gefiltertem Zeitraum bauen
+  currentDays = -1; // Custom
+  destroyCharts();
+
+  var count = daily.length;
+  var fmt = getFormatFn(count);
+  var zeitraumText = '(' + formatDateFull(fromDate) + ' - ' + formatDateFull(toDate) + ')';
+
+  document.getElementById('titleHr').textContent = 'Ruhepuls ' + zeitraumText;
+  document.getElementById('titleHrv').textContent = 'HRV ' + zeitraumText;
+  document.getElementById('titleSleepPhases').textContent = 'Schlaf - Phasen ' + zeitraumText;
+  document.getElementById('titleSleepScore').textContent = 'Schlaf-Score ' + zeitraumText;
+  document.getElementById('titleBattery').textContent = 'Body Battery ' + zeitraumText;
+  document.getElementById('titleStress').textContent = 'Stress ' + zeitraumText;
+  document.getElementById('titleSteps').textContent = 'Schritte ' + zeitraumText;
+
+  var labels = daily.map(function(d) { return fmt(d.date); });
+
+  // Karten mit Durchschnitt aus dem Zeitraum
+  setCard('cardHr', avgField(daily, 'resting_hr', daily.length), ' bpm');
+  setCard('cardSleep', avgField(daily, 'sleep_score', daily.length));
+  setCard('cardBattery', avgField(daily, 'body_battery_max', daily.length), '%');
+  var avgS = avgField(daily, 'steps', daily.length);
+  setCard('cardSteps', avgS ? Math.round(avgS).toLocaleString('de-DE') : null);
+  setCard('cardHrv', avgField(daily, 'hrv', daily.length), ' ms');
+  setCard('cardStress', avgField(daily, 'stress_avg', daily.length));
+
+  // Trends ausblenden bei custom range
+  ['cardHrTrend','cardSleepTrend','cardBatteryTrend','cardStepsTrend','cardHrvTrend','cardStressTrend'].forEach(function(id) {
+    setTrend(id, { text: '', cls: 'neutral' });
+  });
+
+  createLineChart('chartHr', labels, smoothData(daily.map(function(d){return d.resting_hr;}), count), '#f87171', 'rgba(248,113,113,0.1)', count);
+  createLineChart('chartHrv', labels, smoothData(daily.map(function(d){return d.hrv;}), count), '#6c8cff', 'rgba(108,140,255,0.1)', count);
+  createLineChart('chartSleepScore', labels, smoothData(daily.map(function(d){return d.sleep_score;}), count), '#a78bfa', 'rgba(167,139,250,0.1)', count);
+  createLineChart('chartBattery', labels, smoothData(daily.map(function(d){return d.body_battery_max||d.body_battery_start;}), count), '#4ade80', 'rgba(74,222,128,0.1)', count);
+  createLineChart('chartStress', labels, smoothData(daily.map(function(d){return d.stress_avg;}), count), '#fb923c', 'rgba(251,146,60,0.1)', count);
+
+  buildWeightCharts(-1, fromDate, toDate);
+  showActivities((allData.activities||[]).filter(function(a){return a.date>=fromDate&&a.date<=toDate;}), 100);
 }
 
 // ── Gewicht speichern ────────────────────────────────────────────
@@ -1023,6 +1239,11 @@ function saveWeight() {
 // Enter-Taste zum Speichern
 document.getElementById('weightInput').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') saveWeight();
+});
+
+// Enter-Taste fuer Aktivitaeten-Suche
+document.getElementById('actSearch').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') searchActivities();
 });
 
 // ── Daten laden und initialisieren ───────────────────────────────
