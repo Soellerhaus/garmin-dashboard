@@ -380,7 +380,7 @@
         <h3 id="titleSteps">Schritte</h3>
         <canvas id="chartSteps"></canvas>
       </div>
-      <div class="chart-box">
+      <div class="chart-box" id="spo2Section">
         <h3 id="titleSpo2">SpO2</h3>
         <canvas id="chartSpo2"></canvas>
       </div>
@@ -888,8 +888,12 @@ function buildDashboard(days) {
     activeCharts.push(c);
   })();
 
-  // ── Chart 8: SpO2 ────────────────────────────────────
+  // ── Chart 8: SpO2 (nur anzeigen wenn Daten vorhanden) ──
   (function() {
+    var spo2Box = document.getElementById('spo2Section');
+    var spo2Vals = daily.filter(function(d) { return d.spo2_avg != null; });
+    if (spo2Vals.length === 0) { spo2Box.style.display = 'none'; return; }
+    spo2Box.style.display = '';
     var ctx = document.getElementById('chartSpo2');
     if (!ctx) return;
     var c = new Chart(ctx, {
