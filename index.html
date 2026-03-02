@@ -386,8 +386,8 @@
       </div>
     </div>
 
-    <!-- Gewicht-Eingabe -->
-    <div class="weight-input-bar">
+    <!-- Gewicht-Eingabe (nur auf lokalem Server sichtbar) -->
+    <div class="weight-input-bar" id="weightInputBar" style="display:none;">
       <input type="number" id="weightInput" placeholder="z.B. 90.3" step="0.1" min="20" max="300">
       <span style="color:var(--text-muted);">kg</span>
       <input type="date" id="weightDate">
@@ -957,6 +957,12 @@ function buildDashboard(days) {
 }
 
 // ── Gewicht speichern ────────────────────────────────────────────
+
+// Gewicht-Eingabe nur auf lokalem Server anzeigen (nicht GitHub Pages)
+var isLocalServer = location.hostname !== 'soellerhaus.github.io';
+if (isLocalServer) {
+  document.getElementById('weightInputBar').style.display = '';
+}
 
 // Datum-Feld auf heute setzen
 document.getElementById('weightDate').value = new Date().toISOString().slice(0, 10);
