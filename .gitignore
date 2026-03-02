@@ -1,8 +1,6 @@
-# Persoenliche Daten - NICHT committen!
-data/garmin_data.json
-data/weight_data.json
-data/gewicht.csv
+# Passwort und Credentials
 config.json
+data/gewicht.csv
 
 # Garth Token
 .garth/
