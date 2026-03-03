@@ -1350,7 +1350,7 @@ function buildActivitySection(acts, zeitraumText) {
   });
 
   // --- Monatliche Aggregation ---
-  var runTypes = ['trail_running', 'running', 'treadmill_running'];
+  var runTypes = ['trail_running', 'running'];
   var months = {};
   acts.forEach(function(a) {
     var m = a.date.substring(0, 7);
