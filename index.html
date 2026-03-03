@@ -344,6 +344,61 @@
       background: rgba(108, 140, 255, 0.05);
     }
 
+    /* ── Aktivitäten-Kacheln ──────────────────────────── */
+    .activity-overview-title {
+      text-align: center;
+      margin: 35px 0 15px;
+      color: var(--text);
+      font-size: 1.3rem;
+      font-weight: 600;
+    }
+
+    .activity-tiles {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+      margin-bottom: 25px;
+    }
+
+    .activity-tile {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 12px 8px;
+      text-align: center;
+      transition: border-color 0.2s;
+    }
+
+    .activity-tile:hover {
+      border-color: var(--accent);
+    }
+
+    .activity-tile .tile-icon {
+      font-size: 1.6rem;
+      margin-bottom: 4px;
+      line-height: 1;
+    }
+
+    .activity-tile .tile-count {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .activity-tile .tile-name {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      margin-top: 2px;
+    }
+
+    .activity-tile .tile-detail {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
     /* ── Responsive ────────────────────────────────────── */
     @media (max-width: 600px) {
       body { padding: 10px; }
@@ -362,6 +417,13 @@
       .chart-box {
         padding: 15px;
       }
+
+      .activity-tiles {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+
+      .activity-tile .tile-count { font-size: 1.2rem; }
     }
   </style>
 </head>
@@ -471,6 +533,30 @@
       <div class="chart-box" id="spo2Section">
         <h3 id="titleSpo2">SpO2</h3>
         <canvas id="chartSpo2"></canvas>
+      </div>
+    </div>
+
+    <!-- Aktivitäten Übersicht -->
+    <h2 class="activity-overview-title" id="actOverviewTitle">Aktivitaeten Uebersicht</h2>
+    <div class="activity-tiles" id="activityTiles"></div>
+
+    <!-- Aktivitäten Charts -->
+    <div class="charts" id="activityChartsSection">
+      <div class="chart-box">
+        <h3 id="titleActHr">Ø Puls bei Aktivitaeten</h3>
+        <canvas id="chartActHr"></canvas>
+      </div>
+      <div class="chart-box">
+        <h3 id="titleActKm">Distanz (km)</h3>
+        <canvas id="chartActKm"></canvas>
+      </div>
+      <div class="chart-box" id="elevSection" style="display:none;">
+        <h3 id="titleActElev">Hoehenmeter</h3>
+        <canvas id="chartActElev"></canvas>
+      </div>
+      <div class="chart-box">
+        <h3 id="titleActCal">Kalorienverbrauch</h3>
+        <canvas id="chartActCal"></canvas>
       </div>
     </div>
 
@@ -1030,6 +1116,24 @@ function buildDashboard(days) {
   // ── Gewichts-Charts (Huawei Health) ─────────────────
   buildWeightCharts(days);
 
+  // ── Aktivitaeten-Sektion (Kacheln + Charts) ────────
+  var zeitraumText;
+  if (days === 1460) zeitraumText = '(4 Jahre)';
+  else if (days === 1095) zeitraumText = '(3 Jahre)';
+  else if (days === 730) zeitraumText = '(2 Jahre)';
+  else if (days === 365) zeitraumText = '(1 Jahr)';
+  else if (days === 0) zeitraumText = '';
+  else zeitraumText = '(' + days + ' Tage)';
+
+  var filteredActs = allData.activities || [];
+  if (days > 0) {
+    var cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+    var cutoffStr = cutoffDate.toISOString().slice(0, 10);
+    filteredActs = filteredActs.filter(function(a) { return a.date >= cutoffStr; });
+  }
+  buildActivitySection(filteredActs, zeitraumText);
+
   // ── Aktivitaeten: letzte 20 anzeigen ────────────────
   showActivities(allData.activities || [], 20);
 }
@@ -1092,6 +1196,233 @@ function showActivities(acts, limit) {
       '<td>' + cal + '</td>';
     tbody.appendChild(tr);
   });
+}
+
+/** Icon fuer Aktivitaets-Typ */
+function getActivityIcon(type) {
+  var icons = {
+    'trail_running': '&#x1F3D4;&#xFE0F;',
+    'hiking': '&#x1F97E;',
+    'strength_training': '&#x1F4AA;',
+    'treadmill_running': '&#x1F3C3;',
+    'pilates': '&#x1F9D8;',
+    'skate_skiing_ws': '&#x26F7;&#xFE0F;',
+    'indoor_cardio': '&#x2764;&#xFE0F;',
+    'resort_skiing': '&#x1F3BF;',
+    'yoga': '&#x1F9D8;',
+    'running': '&#x1F3C3;',
+    'cycling': '&#x1F6B4;',
+    'road_cycling': '&#x1F6B4;',
+    'multi_sport': '&#x1F3C5;',
+    'e_bike_fitness': '&#x1F6B2;',
+    'snow_shoe_ws': '&#x2744;&#xFE0F;',
+    'cross_country_skiing_ws': '&#x26F7;&#xFE0F;',
+    'hiit': '&#x26A1;',
+    'lap_swimming': '&#x1F3CA;',
+    'tennis_v2': '&#x1F3BE;',
+    'indoor_rowing': '&#x1F6A3;',
+    'mountain_biking': '&#x1F6B5;',
+    'fitness_equipment': '&#x1F3CB;&#xFE0F;',
+    'stop_watch': '&#x23F1;&#xFE0F;',
+  };
+  return icons[type] || '&#x1F3C6;';
+}
+
+/** Monatslabel formatieren: "Mrz 24" */
+function formatMonthLabel(yearMonth) {
+  var parts = yearMonth.split('-');
+  var names = ['Jan','Feb','Mrz','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+  return names[parseInt(parts[1]) - 1] + ' ' + parts[0].slice(2);
+}
+
+/** Aktivitaeten-Sektion aufbauen: Kacheln + Charts */
+function buildActivitySection(acts, zeitraumText) {
+  var tiles = document.getElementById('activityTiles');
+  tiles.innerHTML = '';
+
+  if (!acts || acts.length === 0) {
+    document.getElementById('actOverviewTitle').textContent = 'Aktivitaeten Uebersicht';
+    document.getElementById('activityChartsSection').style.display = 'none';
+    return;
+  }
+
+  document.getElementById('activityChartsSection').style.display = '';
+  document.getElementById('actOverviewTitle').textContent = 'Aktivitaeten Uebersicht ' + zeitraumText + ' – ' + acts.length + ' Einheiten';
+
+  // --- Kacheln: Zaehlung je Typ ---
+  var typeCounts = {};
+  var typeKm = {};
+  acts.forEach(function(a) {
+    var t = a.type || 'unknown';
+    if (!typeCounts[t]) { typeCounts[t] = 0; typeKm[t] = 0; }
+    typeCounts[t]++;
+    if (a.distance_km) typeKm[t] += a.distance_km;
+  });
+
+  var sortedTypes = Object.keys(typeCounts).sort(function(a, b) { return typeCounts[b] - typeCounts[a]; });
+
+  sortedTypes.forEach(function(t) {
+    var tile = document.createElement('div');
+    tile.className = 'activity-tile';
+    var km = typeKm[t] > 0 ? Math.round(typeKm[t]).toLocaleString('de-DE') + ' km' : '';
+    tile.innerHTML =
+      '<div class="tile-icon">' + getActivityIcon(t) + '</div>' +
+      '<div class="tile-count">' + typeCounts[t] + '</div>' +
+      '<div class="tile-name">' + formatType(t) + '</div>' +
+      (km ? '<div class="tile-detail">' + km + '</div>' : '');
+    tiles.appendChild(tile);
+  });
+
+  // --- Monatliche Aggregation ---
+  var months = {};
+  acts.forEach(function(a) {
+    var m = a.date.substring(0, 7);
+    if (!months[m]) months[m] = { hr_sum: 0, hr_count: 0, km: 0, elev: 0, cal: 0 };
+    if (a.distance_km > 0 && a.avg_hr > 0) {
+      months[m].hr_sum += a.avg_hr;
+      months[m].hr_count++;
+    }
+    if (a.distance_km) months[m].km += a.distance_km;
+    if (a.elevation_gain) months[m].elev += a.elevation_gain;
+    if (a.calories) months[m].cal += a.calories;
+  });
+
+  var monthKeys = Object.keys(months).sort();
+  var monthLabels = monthKeys.map(formatMonthLabel);
+  var mCount = monthKeys.length;
+  var ticks = mCount > 24 ? 12 : (mCount > 12 ? mCount : undefined);
+
+  // Titel aktualisieren
+  document.getElementById('titleActHr').textContent = 'Ø Puls bei Aktivitaeten ' + zeitraumText;
+  document.getElementById('titleActKm').textContent = 'Distanz pro Monat ' + zeitraumText;
+  document.getElementById('titleActCal').textContent = 'Kalorienverbrauch pro Monat ' + zeitraumText;
+
+  // --- Chart: Durchschnittspuls ---
+  var hrData = monthKeys.map(function(m) {
+    return months[m].hr_count > 0 ? Math.round(months[m].hr_sum / months[m].hr_count) : null;
+  });
+  var hasHr = hrData.some(function(v) { return v != null; });
+
+  if (hasHr) {
+    var ctxHr = document.getElementById('chartActHr');
+    if (ctxHr) {
+      var cHr = new Chart(ctxHr, {
+        type: 'line',
+        data: {
+          labels: monthLabels,
+          datasets: [{
+            data: hrData,
+            borderColor: '#f87171',
+            backgroundColor: 'rgba(248, 113, 113, 0.15)',
+            fill: true,
+            spanGaps: true,
+            pointRadius: mCount <= 24 ? 4 : 2,
+            pointHoverRadius: 6,
+            pointBackgroundColor: '#f87171',
+            tension: 0.3,
+          }]
+        },
+        options: {
+          scales: {
+            y: { beginAtZero: false, grid: { color: 'rgba(255,255,255,0.05)' }, title: { display: true, text: 'bpm' } },
+            x: { grid: { display: false }, ticks: { maxTicksLimit: ticks } }
+          },
+          plugins: { tooltip: { backgroundColor: '#1a1d27', borderColor: '#2a2d3a', borderWidth: 1 } }
+        }
+      });
+      activeCharts.push(cHr);
+    }
+  }
+
+  // --- Chart: Distanz (km) pro Monat ---
+  var kmData = monthKeys.map(function(m) { return Math.round(months[m].km * 10) / 10; });
+  var ctxKm = document.getElementById('chartActKm');
+  if (ctxKm) {
+    var cKm = new Chart(ctxKm, {
+      type: 'bar',
+      data: {
+        labels: monthLabels,
+        datasets: [{
+          label: 'km',
+          data: kmData,
+          backgroundColor: 'rgba(108, 140, 255, 0.6)',
+          borderRadius: 4,
+          barPercentage: 0.8,
+        }]
+      },
+      options: {
+        scales: {
+          y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, title: { display: true, text: 'km' } },
+          x: { grid: { display: false }, ticks: { maxTicksLimit: ticks } }
+        },
+        plugins: { tooltip: { backgroundColor: '#1a1d27', borderColor: '#2a2d3a', borderWidth: 1 } }
+      }
+    });
+    activeCharts.push(cKm);
+  }
+
+  // --- Chart: Hoehenmeter (nur wenn Daten vorhanden) ---
+  var elevSection = document.getElementById('elevSection');
+  var elevData = monthKeys.map(function(m) { return Math.round(months[m].elev); });
+  var hasElev = elevData.some(function(v) { return v > 0; });
+
+  if (hasElev) {
+    elevSection.style.display = '';
+    document.getElementById('titleActElev').textContent = 'Hoehenmeter pro Monat ' + zeitraumText;
+    var ctxElev = document.getElementById('chartActElev');
+    if (ctxElev) {
+      var cElev = new Chart(ctxElev, {
+        type: 'bar',
+        data: {
+          labels: monthLabels,
+          datasets: [{
+            label: 'Hm',
+            data: elevData,
+            backgroundColor: 'rgba(74, 222, 128, 0.6)',
+            borderRadius: 4,
+            barPercentage: 0.8,
+          }]
+        },
+        options: {
+          scales: {
+            y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, title: { display: true, text: 'Hm' } },
+            x: { grid: { display: false }, ticks: { maxTicksLimit: ticks } }
+          },
+          plugins: { tooltip: { backgroundColor: '#1a1d27', borderColor: '#2a2d3a', borderWidth: 1 } }
+        }
+      });
+      activeCharts.push(cElev);
+    }
+  } else {
+    elevSection.style.display = 'none';
+  }
+
+  // --- Chart: Kalorienverbrauch pro Monat ---
+  var calData = monthKeys.map(function(m) { return Math.round(months[m].cal); });
+  var ctxCal = document.getElementById('chartActCal');
+  if (ctxCal) {
+    var cCal = new Chart(ctxCal, {
+      type: 'bar',
+      data: {
+        labels: monthLabels,
+        datasets: [{
+          label: 'kcal',
+          data: calData,
+          backgroundColor: 'rgba(251, 146, 60, 0.6)',
+          borderRadius: 4,
+          barPercentage: 0.8,
+        }]
+      },
+      options: {
+        scales: {
+          y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, title: { display: true, text: 'kcal' } },
+          x: { grid: { display: false }, ticks: { maxTicksLimit: ticks } }
+        },
+        plugins: { tooltip: { backgroundColor: '#1a1d27', borderColor: '#2a2d3a', borderWidth: 1 } }
+      }
+    });
+    activeCharts.push(cCal);
+  }
 }
 
 /** Aktivitaeten suchen/filtern */
@@ -1169,7 +1500,11 @@ function applyDateRange() {
   createLineChart('chartStress', labels, smoothData(daily.map(function(d){return d.stress_avg;}), count), '#fb923c', 'rgba(251,146,60,0.1)', count);
 
   buildWeightCharts(-1, fromDate, toDate);
-  showActivities((allData.activities||[]).filter(function(a){return a.date>=fromDate&&a.date<=toDate;}), 100);
+
+  var rangeActs = (allData.activities||[]).filter(function(a){return a.date>=fromDate&&a.date<=toDate;});
+  var customZeitraum = '(' + formatDateFull(fromDate) + ' - ' + formatDateFull(toDate) + ')';
+  buildActivitySection(rangeActs, customZeitraum);
+  showActivities(rangeActs, 100);
 }
 
 // ── Gewicht speichern ────────────────────────────────────────────

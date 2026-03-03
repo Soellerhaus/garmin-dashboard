@@ -209,6 +209,10 @@ def main():
                     distanz_m = akt.get("distance")
                     distanz_km = round(distanz_m / 1000, 2) if distanz_m else None
 
+                    aufstieg = akt.get("elevationGain")
+                    if aufstieg is not None:
+                        aufstieg = round(aufstieg)
+
                     activities_data.append({
                         "date": akt_datum,
                         "type": akt.get("activityType", {}).get("typeKey", "unknown"),
@@ -217,6 +221,7 @@ def main():
                         "distance_km": distanz_km,
                         "avg_hr": akt.get("averageHR"),
                         "calories": akt.get("calories"),
+                        "elevation_gain": aufstieg,
                     })
                 except Exception:
                     continue
