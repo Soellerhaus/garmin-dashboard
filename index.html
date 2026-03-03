@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Garmin Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
   <style>
     /* ── Grundlagen ───────────────────────────────────── */
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -550,6 +551,10 @@
         <h3 id="titleActKm">Distanz (km)</h3>
         <canvas id="chartActKm"></canvas>
       </div>
+      <div class="chart-box">
+        <h3 id="titleActPace">Pace (Laufen)</h3>
+        <canvas id="chartActPace"></canvas>
+      </div>
       <div class="chart-box" id="elevSection" style="display:none;">
         <h3 id="titleActElev">Hoehenmeter</h3>
         <canvas id="chartActElev"></canvas>
@@ -820,7 +825,7 @@ function createLineChart(canvasId, labels, data, color, fillColor, count) {
   return chart;
 }
 
-// ── Gewichts-Charts aufbauen ─────────────────────────────────────
+// ── Gewichts-Charts aufbauen (mit Zeitachse) ─────────────────────
 function buildWeightCharts(days, fromDate, toDate) {
   var section = document.getElementById('weightSection');
   var cardBox = document.getElementById('cardWeightBox');
@@ -851,24 +856,16 @@ function buildWeightCharts(days, fromDate, toDate) {
   }
 
   var count = weights.length;
-  var fmt = getFormatFn(count);
-  var zeitraumText;
-  if (days === 1460) zeitraumText = '(4 Jahre)';
-  else if (days === 1095) zeitraumText = '(3 Jahre)';
-  else if (days === 730) zeitraumText = '(2 Jahre)';
-  else if (days === 365) zeitraumText = '(1 Jahr)';
-  else if (days === 0) zeitraumText = '(' + count + ' Messungen)';
-  else zeitraumText = '(' + days + ' Tage)';
 
   document.getElementById('titleWeight').textContent = 'Gewicht (' + count + ' Messungen)';
-  document.getElementById('titleFat').textContent = 'Körperfett (' + count + ' Messungen)';
+  document.getElementById('titleFat').textContent = 'Koerperfett (' + count + ' Messungen)';
 
-  var labels = weights.map(function(w) { return fmt(w.date); });
+  // Daten als {x: Date, y: value} fuer Zeitachse
+  var weightPoints = weights.map(function(w) { return { x: w.date, y: w.weight_kg }; });
 
-  // Gewichtskarte: Durchschnitt letzte 7 Messungen + Periodenvergleich
+  // Gewichtskarte
   var letztes = weights[weights.length - 1];
   setCard('cardWeight', letztes.weight_kg, ' kg');
-  // Gewichts-Periodenvergleich
   var allW = weightData.weights;
   var periodLen = days > 0 ? days : Math.floor(allW.length / 2);
   var curW = allW.slice(Math.max(0, allW.length - periodLen));
@@ -877,20 +874,95 @@ function buildWeightCharts(days, fromDate, toDate) {
   var prevAvgW = prevW.length > 0 ? prevW.reduce(function(s,w){return s+w.weight_kg;},0)/prevW.length : null;
   setTrend('cardWeightTrend', getTrend(curAvgW, prevAvgW, true));
 
-  // Gewichts-Chart
-  createLineChart('chartWeight', labels,
-    smoothData(weights.map(function(w) { return w.weight_kg; }), count),
-    '#f472b6', 'rgba(244, 114, 182, 0.1)', count);
+  // Zeiteinheit bestimmen
+  var timeUnit = 'month';
+  if (days > 0 && days <= 90) timeUnit = 'week';
+  if (days > 0 && days <= 30) timeUnit = 'day';
 
-  // Körperfett-Chart (nur wenn Daten vorhanden)
+  // Gewichts-Chart mit Zeitachse
+  var ctxW = document.getElementById('chartWeight');
+  if (ctxW) {
+    var cW = new Chart(ctxW, {
+      type: 'line',
+      data: {
+        datasets: [{
+          data: weightPoints,
+          borderColor: '#f472b6',
+          backgroundColor: 'rgba(244, 114, 182, 0.1)',
+          fill: true,
+          spanGaps: true,
+          pointRadius: count <= 30 ? 4 : (count <= 100 ? 3 : 2),
+          pointHoverRadius: 5,
+          pointBackgroundColor: '#f472b6',
+          tension: 0.3,
+        }]
+      },
+      options: {
+        scales: {
+          x: {
+            type: 'time',
+            time: { unit: timeUnit, displayFormats: { day: 'dd.MM', week: 'dd.MM.yy', month: 'MMM yy', year: 'yyyy' } },
+            grid: { display: false },
+            ticks: { maxTicksLimit: 16 }
+          },
+          y: {
+            beginAtZero: false,
+            grid: { color: 'rgba(255,255,255,0.05)' },
+            title: { display: true, text: 'kg' }
+          }
+        },
+        plugins: {
+          tooltip: {
+            backgroundColor: '#1a1d27', borderColor: '#2a2d3a', borderWidth: 1,
+            callbacks: {
+              title: function(items) { return items[0] ? formatDateFull(items[0].raw.x) : ''; },
+              label: function(item) { return item.raw.y + ' kg'; }
+            }
+          }
+        }
+      }
+    });
+    activeCharts.push(cW);
+  }
+
+  // Koerperfett-Chart (nur wenn Daten vorhanden)
   var fatSection = document.getElementById('fatSection');
-  var fatData = weights.map(function(w) { return w.body_fat_pct || null; });
-  var hasFat = fatData.some(function(v) { return v != null; });
+  var fatPoints = weights
+    .filter(function(w) { return w.body_fat_pct != null; })
+    .map(function(w) { return { x: w.date, y: w.body_fat_pct }; });
 
-  if (hasFat) {
+  if (fatPoints.length > 0) {
     fatSection.style.display = '';
-    createLineChart('chartFat', labels, fatData,
-      '#fb923c', 'rgba(251, 146, 60, 0.1)', count);
+    var ctxF = document.getElementById('chartFat');
+    if (ctxF) {
+      var cF = new Chart(ctxF, {
+        type: 'line',
+        data: {
+          datasets: [{
+            data: fatPoints,
+            borderColor: '#fb923c',
+            backgroundColor: 'rgba(251, 146, 60, 0.1)',
+            fill: true,
+            spanGaps: true,
+            pointRadius: 3,
+            pointBackgroundColor: '#fb923c',
+            tension: 0.3,
+          }]
+        },
+        options: {
+          scales: {
+            x: {
+              type: 'time',
+              time: { unit: timeUnit, displayFormats: { day: 'dd.MM', week: 'dd.MM.yy', month: 'MMM yy', year: 'yyyy' } },
+              grid: { display: false }
+            },
+            y: { beginAtZero: false, grid: { color: 'rgba(255,255,255,0.05)' }, title: { display: true, text: '%' } }
+          },
+          plugins: { tooltip: { backgroundColor: '#1a1d27', borderColor: '#2a2d3a', borderWidth: 1 } }
+        }
+      });
+      activeCharts.push(cF);
+    }
   } else {
     fatSection.style.display = 'none';
   }
@@ -1274,10 +1346,11 @@ function buildActivitySection(acts, zeitraumText) {
   });
 
   // --- Monatliche Aggregation ---
+  var runTypes = ['trail_running', 'running', 'treadmill_running'];
   var months = {};
   acts.forEach(function(a) {
     var m = a.date.substring(0, 7);
-    if (!months[m]) months[m] = { hr_sum: 0, hr_count: 0, km: 0, elev: 0, cal: 0 };
+    if (!months[m]) months[m] = { hr_sum: 0, hr_count: 0, km: 0, elev: 0, cal: 0, pace_sum: 0, pace_count: 0 };
     if (a.distance_km > 0 && a.avg_hr > 0) {
       months[m].hr_sum += a.avg_hr;
       months[m].hr_count++;
@@ -1285,6 +1358,11 @@ function buildActivitySection(acts, zeitraumText) {
     if (a.distance_km) months[m].km += a.distance_km;
     if (a.elevation_gain) months[m].elev += a.elevation_gain;
     if (a.calories) months[m].cal += a.calories;
+    // Pace nur fuer Lauf-Aktivitaeten
+    if (runTypes.indexOf(a.type) >= 0 && a.distance_km > 0 && a.duration_minutes > 0) {
+      months[m].pace_sum += a.duration_minutes / a.distance_km;
+      months[m].pace_count++;
+    }
   });
 
   var monthKeys = Object.keys(months).sort();
@@ -1295,6 +1373,7 @@ function buildActivitySection(acts, zeitraumText) {
   // Titel aktualisieren
   document.getElementById('titleActHr').textContent = 'Ø Puls bei Aktivitaeten ' + zeitraumText;
   document.getElementById('titleActKm').textContent = 'Distanz pro Monat ' + zeitraumText;
+  document.getElementById('titleActPace').textContent = 'Ø Pace Laufen ' + zeitraumText;
   document.getElementById('titleActCal').textContent = 'Kalorienverbrauch pro Monat ' + zeitraumText;
 
   // --- Chart: Durchschnittspuls ---
@@ -1359,6 +1438,69 @@ function buildActivitySection(acts, zeitraumText) {
       }
     });
     activeCharts.push(cKm);
+  }
+
+  // --- Chart: Pace (min/km) fuer Lauf-Aktivitaeten ---
+  var paceData = monthKeys.map(function(m) {
+    return months[m].pace_count > 0 ? Math.round(months[m].pace_sum / months[m].pace_count * 100) / 100 : null;
+  });
+  var hasPace = paceData.some(function(v) { return v != null; });
+
+  if (hasPace) {
+    var ctxPace = document.getElementById('chartActPace');
+    if (ctxPace) {
+      // Pace-Labels formatieren: "6.5" → "6:30"
+      var cPace = new Chart(ctxPace, {
+        type: 'line',
+        data: {
+          labels: monthLabels,
+          datasets: [{
+            data: paceData,
+            borderColor: '#22d3ee',
+            backgroundColor: 'rgba(34, 211, 238, 0.15)',
+            fill: true,
+            spanGaps: true,
+            pointRadius: mCount <= 24 ? 4 : 2,
+            pointHoverRadius: 6,
+            pointBackgroundColor: '#22d3ee',
+            tension: 0.3,
+          }]
+        },
+        options: {
+          scales: {
+            y: {
+              reverse: true,
+              beginAtZero: false,
+              grid: { color: 'rgba(255,255,255,0.05)' },
+              title: { display: true, text: 'min/km' },
+              ticks: {
+                callback: function(val) {
+                  var m = Math.floor(val);
+                  var s = Math.round((val - m) * 60);
+                  return m + ':' + (s < 10 ? '0' : '') + s;
+                }
+              }
+            },
+            x: { grid: { display: false }, ticks: { maxTicksLimit: ticks } }
+          },
+          plugins: {
+            tooltip: {
+              backgroundColor: '#1a1d27', borderColor: '#2a2d3a', borderWidth: 1,
+              callbacks: {
+                label: function(item) {
+                  var val = item.raw;
+                  if (val == null) return '';
+                  var m = Math.floor(val);
+                  var s = Math.round((val - m) * 60);
+                  return m + ':' + (s < 10 ? '0' : '') + s + ' min/km';
+                }
+              }
+            }
+          }
+        }
+      });
+      activeCharts.push(cPace);
+    }
   }
 
   // --- Chart: Hoehenmeter (nur wenn Daten vorhanden) ---
