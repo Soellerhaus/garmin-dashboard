@@ -784,24 +784,55 @@ function getMaxTicksLimit(count) {
   return 16;
 }
 
+/** Durchschnitt aus nicht-null Werten eines Arrays berechnen */
+function calcAvg(arr) {
+  var vals = arr.filter(function(v) { return v != null; });
+  if (vals.length === 0) return null;
+  return Math.round(vals.reduce(function(a,b){return a+b;},0) / vals.length * 10) / 10;
+}
+
+/** Durchschnittslinie-Dataset erstellen */
+function avgLineDataset(data, color) {
+  var avg = calcAvg(data);
+  if (avg == null) return null;
+  return {
+    label: 'Ø ' + avg,
+    data: data.map(function() { return avg; }),
+    borderColor: color,
+    borderDash: [6, 4],
+    borderWidth: 1.5,
+    pointRadius: 0,
+    pointHoverRadius: 0,
+    fill: false,
+    tension: 0,
+  };
+}
+
 // ── Linienchart erstellen ────────────────────────────────────────
-function createLineChart(canvasId, labels, data, color, fillColor, count) {
+function createLineChart(canvasId, labels, data, color, fillColor, count, showAvg) {
   var ctx = document.getElementById(canvasId);
   if (!ctx) return null;
+  var datasets = [{
+    data: data,
+    borderColor: color,
+    backgroundColor: fillColor || 'transparent',
+    fill: !!fillColor,
+    spanGaps: false,
+    pointRadius: getPointRadius(count),
+    pointHoverRadius: 4,
+    pointBackgroundColor: color,
+  }];
+
+  if (showAvg) {
+    var avgDs = avgLineDataset(data, color);
+    if (avgDs) datasets.push(avgDs);
+  }
+
   var chart = new Chart(ctx, {
     type: 'line',
     data: {
       labels: labels,
-      datasets: [{
-        data: data,
-        borderColor: color,
-        backgroundColor: fillColor || 'transparent',
-        fill: !!fillColor,
-        spanGaps: false,
-        pointRadius: getPointRadius(count),
-        pointHoverRadius: 4,
-        pointBackgroundColor: color,
-      }]
+      datasets: datasets
     },
     options: {
       scales: {
@@ -815,6 +846,7 @@ function createLineChart(canvasId, labels, data, color, fillColor, count) {
         }
       },
       plugins: {
+        legend: { display: showAvg ? true : false, labels: { boxWidth: 12 } },
         tooltip: {
           backgroundColor: '#1a1d27',
           borderColor: '#2a2d3a',
@@ -1025,15 +1057,15 @@ function buildDashboard(days) {
   setTrend('cardHrvTrend', getPeriodTrend(allData.daily, 'hrv', days, false));
   setTrend('cardStressTrend', getPeriodTrend(allData.daily, 'stress_avg', days, true));
 
-  // ── Chart 1: Ruhepuls ────────────────────────────────
+  // ── Chart 1: Ruhepuls (mit Durchschnittslinie) ───────
   createLineChart('chartHr', labels,
     smoothData(daily.map(function(d) { return d.resting_hr; }), count),
-    '#f87171', 'rgba(248, 113, 113, 0.1)', count);
+    '#f87171', 'rgba(248, 113, 113, 0.1)', count, true);
 
-  // ── Chart 2: HRV ─────────────────────────────────────
+  // ── Chart 2: HRV (mit Durchschnittslinie) ──────────
   createLineChart('chartHrv', labels,
     smoothData(daily.map(function(d) { return d.hrv; }), count),
-    '#6c8cff', 'rgba(108, 140, 255, 0.1)', count);
+    '#6c8cff', 'rgba(108, 140, 255, 0.1)', count, true);
 
   // ── Chart 3: Schlafphasen (Stacked Bar) ──────────────
   (function() {
@@ -1080,20 +1112,20 @@ function buildDashboard(days) {
     activeCharts.push(c);
   })();
 
-  // ── Chart 4: Schlaf-Score ────────────────────────────
+  // ── Chart 4: Schlaf-Score (mit Durchschnittslinie) ───
   createLineChart('chartSleepScore', labels,
     smoothData(daily.map(function(d) { return d.sleep_score; }), count),
-    '#a78bfa', 'rgba(167, 139, 250, 0.1)', count);
+    '#a78bfa', 'rgba(167, 139, 250, 0.1)', count, true);
 
   // ── Chart 5: Body Battery ────────────────────────────
   createLineChart('chartBattery', labels,
     smoothData(daily.map(function(d) { return d.body_battery_max || d.body_battery_start; }), count),
     '#4ade80', 'rgba(74, 222, 128, 0.1)', count);
 
-  // ── Chart 6: Stress ──────────────────────────────────
+  // ── Chart 6: Stress (mit Durchschnittslinie) ─────────
   createLineChart('chartStress', labels,
     smoothData(daily.map(function(d) { return d.stress_avg; }), count),
-    '#fb923c', 'rgba(251, 146, 60, 0.1)', count);
+    '#fb923c', 'rgba(251, 146, 60, 0.1)', count, true);
 
   // ── Chart 7: Schritte (Bar + Ziellinie) ──────────────
   (function() {
@@ -1389,11 +1421,7 @@ function buildActivitySection(acts, zeitraumText) {
   if (hasHr) {
     var ctxHr = document.getElementById('chartActHr');
     if (ctxHr) {
-      var cHr = new Chart(ctxHr, {
-        type: 'line',
-        data: {
-          labels: monthLabels,
-          datasets: [{
+      var actHrDatasets = [{
             data: hrData,
             borderColor: '#f87171',
             backgroundColor: 'rgba(248, 113, 113, 0.15)',
@@ -1403,14 +1431,25 @@ function buildActivitySection(acts, zeitraumText) {
             pointHoverRadius: 6,
             pointBackgroundColor: '#f87171',
             tension: 0.3,
-          }]
+          }];
+      var actHrAvg = avgLineDataset(hrData, '#f87171');
+      if (actHrAvg) actHrDatasets.push(actHrAvg);
+
+      var cHr = new Chart(ctxHr, {
+        type: 'line',
+        data: {
+          labels: monthLabels,
+          datasets: actHrDatasets
         },
         options: {
           scales: {
             y: { beginAtZero: false, grid: { color: 'rgba(255,255,255,0.05)' }, title: { display: true, text: 'bpm' } },
             x: { grid: { display: false }, ticks: { maxTicksLimit: ticks } }
           },
-          plugins: { tooltip: { backgroundColor: '#1a1d27', borderColor: '#2a2d3a', borderWidth: 1 } }
+          plugins: {
+            legend: { display: true, labels: { boxWidth: 12 } },
+            tooltip: { backgroundColor: '#1a1d27', borderColor: '#2a2d3a', borderWidth: 1 }
+          }
         }
       });
       activeCharts.push(cHr);
@@ -1742,11 +1781,11 @@ function applyDateRange() {
     setTrend(id, { text: '', cls: 'neutral' });
   });
 
-  createLineChart('chartHr', labels, smoothData(daily.map(function(d){return d.resting_hr;}), count), '#f87171', 'rgba(248,113,113,0.1)', count);
-  createLineChart('chartHrv', labels, smoothData(daily.map(function(d){return d.hrv;}), count), '#6c8cff', 'rgba(108,140,255,0.1)', count);
-  createLineChart('chartSleepScore', labels, smoothData(daily.map(function(d){return d.sleep_score;}), count), '#a78bfa', 'rgba(167,139,250,0.1)', count);
+  createLineChart('chartHr', labels, smoothData(daily.map(function(d){return d.resting_hr;}), count), '#f87171', 'rgba(248,113,113,0.1)', count, true);
+  createLineChart('chartHrv', labels, smoothData(daily.map(function(d){return d.hrv;}), count), '#6c8cff', 'rgba(108,140,255,0.1)', count, true);
+  createLineChart('chartSleepScore', labels, smoothData(daily.map(function(d){return d.sleep_score;}), count), '#a78bfa', 'rgba(167,139,250,0.1)', count, true);
   createLineChart('chartBattery', labels, smoothData(daily.map(function(d){return d.body_battery_max||d.body_battery_start;}), count), '#4ade80', 'rgba(74,222,128,0.1)', count);
-  createLineChart('chartStress', labels, smoothData(daily.map(function(d){return d.stress_avg;}), count), '#fb923c', 'rgba(251,146,60,0.1)', count);
+  createLineChart('chartStress', labels, smoothData(daily.map(function(d){return d.stress_avg;}), count), '#fb923c', 'rgba(251,146,60,0.1)', count, true);
 
   buildWeightCharts(-1, fromDate, toDate);
 
