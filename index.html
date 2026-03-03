@@ -784,27 +784,58 @@ function getMaxTicksLimit(count) {
   return 16;
 }
 
-/** Durchschnitt aus nicht-null Werten eines Arrays berechnen */
-function calcAvg(arr) {
-  var vals = arr.filter(function(v) { return v != null; });
-  if (vals.length === 0) return null;
-  return Math.round(vals.reduce(function(a,b){return a+b;},0) / vals.length * 10) / 10;
+/** Gleitenden Durchschnitt als Trendkurve berechnen */
+function calcTrend(data, window) {
+  var result = [];
+  for (var i = 0; i < data.length; i++) {
+    var sum = 0, n = 0;
+    var half = Math.floor(window / 2);
+    for (var j = Math.max(0, i - half); j <= Math.min(data.length - 1, i + half); j++) {
+      if (data[j] != null) { sum += data[j]; n++; }
+    }
+    result.push(n > 0 ? Math.round(sum / n * 10) / 10 : null);
+  }
+  return result;
 }
 
-/** Durchschnittslinie-Dataset erstellen */
-function avgLineDataset(data, color) {
-  var avg = calcAvg(data);
-  if (avg == null) return null;
+/** Trendkurve-Dataset erstellen (gleitender Durchschnitt) */
+function trendLineDataset(data, color, count) {
+  // Fenstergröße: größer = glatter
+  var window;
+  if (count <= 60) window = 14;
+  else if (count <= 180) window = 30;
+  else if (count <= 400) window = 60;
+  else window = 90;
+  var trendData = calcTrend(data, window);
+  var hasData = trendData.some(function(v) { return v != null; });
+  if (!hasData) return null;
   return {
-    label: 'Ø ' + avg,
-    data: data.map(function() { return avg; }),
+    label: 'Trend',
+    data: trendData,
     borderColor: color,
-    borderDash: [6, 4],
-    borderWidth: 1.5,
+    borderWidth: 2.5,
     pointRadius: 0,
     pointHoverRadius: 0,
     fill: false,
-    tension: 0,
+    tension: 0.4,
+  };
+}
+
+/** Trendkurve fuer monatliche Daten (kleineres Fenster) */
+function trendLineMonthly(data, color) {
+  var window = data.length <= 12 ? 3 : (data.length <= 24 ? 4 : 6);
+  var trendData = calcTrend(data, window);
+  var hasData = trendData.some(function(v) { return v != null; });
+  if (!hasData) return null;
+  return {
+    label: 'Trend',
+    data: trendData,
+    borderColor: color,
+    borderWidth: 2.5,
+    pointRadius: 0,
+    pointHoverRadius: 0,
+    fill: false,
+    tension: 0.4,
   };
 }
 
@@ -812,20 +843,33 @@ function avgLineDataset(data, color) {
 function createLineChart(canvasId, labels, data, color, fillColor, count, showAvg) {
   var ctx = document.getElementById(canvasId);
   if (!ctx) return null;
+  // Wenn Trend aktiv: Hauptlinie dezenter, Trend dominant
+  var mainAlpha = showAvg ? 0.35 : 1;
+  var mainColor = showAvg ? color.replace(')', ',' + mainAlpha + ')').replace('rgb(', 'rgba(').replace('#', '') : color;
+  if (showAvg && color.charAt(0) === '#') {
+    // Hex zu rgba konvertieren fuer Transparenz
+    var hex = color.slice(1);
+    var r = parseInt(hex.substring(0,2), 16);
+    var g = parseInt(hex.substring(2,4), 16);
+    var b = parseInt(hex.substring(4,6), 16);
+    mainColor = 'rgba(' + r + ',' + g + ',' + b + ',' + mainAlpha + ')';
+  }
+
   var datasets = [{
     data: data,
-    borderColor: color,
+    borderColor: mainColor,
     backgroundColor: fillColor || 'transparent',
     fill: !!fillColor,
     spanGaps: false,
+    borderWidth: showAvg ? 1 : 2,
     pointRadius: getPointRadius(count),
     pointHoverRadius: 4,
-    pointBackgroundColor: color,
+    pointBackgroundColor: mainColor,
   }];
 
   if (showAvg) {
-    var avgDs = avgLineDataset(data, color);
-    if (avgDs) datasets.push(avgDs);
+    var trendDs = trendLineDataset(data, color, count);
+    if (trendDs) datasets.push(trendDs);
   }
 
   var chart = new Chart(ctx, {
@@ -1423,17 +1467,18 @@ function buildActivitySection(acts, zeitraumText) {
     if (ctxHr) {
       var actHrDatasets = [{
             data: hrData,
-            borderColor: '#f87171',
-            backgroundColor: 'rgba(248, 113, 113, 0.15)',
+            borderColor: 'rgba(248, 113, 113, 0.35)',
+            backgroundColor: 'rgba(248, 113, 113, 0.1)',
             fill: true,
             spanGaps: true,
-            pointRadius: mCount <= 24 ? 4 : 2,
-            pointHoverRadius: 6,
-            pointBackgroundColor: '#f87171',
+            borderWidth: 1,
+            pointRadius: mCount <= 24 ? 3 : 1,
+            pointHoverRadius: 5,
+            pointBackgroundColor: 'rgba(248, 113, 113, 0.5)',
             tension: 0.3,
           }];
-      var actHrAvg = avgLineDataset(hrData, '#f87171');
-      if (actHrAvg) actHrDatasets.push(actHrAvg);
+      var actHrTrend = trendLineMonthly(hrData, '#f87171');
+      if (actHrTrend) actHrDatasets.push(actHrTrend);
 
       var cHr = new Chart(ctxHr, {
         type: 'line',
