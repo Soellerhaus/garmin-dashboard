@@ -1189,8 +1189,8 @@ function buildDashboard(days) {
     activeCharts.push(c);
   })();
 
-  // ── Gewichts-Charts (Huawei Health) ─────────────────
-  buildWeightCharts(days);
+  // ── Gewichts-Charts (max. 1 Jahr) ─────────────────
+  buildWeightCharts(days > 0 ? Math.min(days, 365) : 365);
 
   // ── Aktivitaeten-Sektion (Kacheln + Charts) ────────
   var zeitraumText;
