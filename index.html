@@ -959,23 +959,42 @@ function buildWeightCharts(days, fromDate, toDate) {
   if (days > 0 && days <= 90) timeUnit = 'week';
   if (days > 0 && days <= 30) timeUnit = 'day';
 
-  // Gewichts-Chart mit Zeitachse
+  // Gewichts-Chart mit Zeitachse + Trendkurve
   var ctxW = document.getElementById('chartWeight');
   if (ctxW) {
-    var cW = new Chart(ctxW, {
-      type: 'line',
-      data: {
-        datasets: [{
+    // Trendkurve berechnen
+    var wYvals = weights.map(function(w) { return w.weight_kg; });
+    var wWindow = count <= 30 ? 7 : (count <= 90 ? 14 : 30);
+    var wTrendVals = calcTrend(wYvals, wWindow);
+    var wTrendPoints = weights.map(function(w, i) { return { x: w.date, y: wTrendVals[i] }; });
+
+    var wDatasets = [{
           data: weightPoints,
-          borderColor: '#f472b6',
+          borderColor: 'rgba(244, 114, 182, 0.35)',
           backgroundColor: 'rgba(244, 114, 182, 0.1)',
           fill: true,
           spanGaps: true,
-          pointRadius: count <= 30 ? 4 : (count <= 100 ? 3 : 2),
+          borderWidth: 1,
+          pointRadius: count <= 30 ? 3 : (count <= 100 ? 2 : 1),
           pointHoverRadius: 5,
-          pointBackgroundColor: '#f472b6',
+          pointBackgroundColor: 'rgba(244, 114, 182, 0.5)',
           tension: 0.3,
-        }]
+        },
+        {
+          label: 'Trend',
+          data: wTrendPoints,
+          borderColor: '#f472b6',
+          borderWidth: 2.5,
+          pointRadius: 0,
+          pointHoverRadius: 0,
+          fill: false,
+          tension: 0.4,
+        }];
+
+    var cW = new Chart(ctxW, {
+      type: 'line',
+      data: {
+        datasets: wDatasets
       },
       options: {
         scales: {
@@ -992,6 +1011,7 @@ function buildWeightCharts(days, fromDate, toDate) {
           }
         },
         plugins: {
+          legend: { display: true, labels: { boxWidth: 12 } },
           tooltip: {
             backgroundColor: '#1a1d27', borderColor: '#2a2d3a', borderWidth: 1,
             callbacks: {
