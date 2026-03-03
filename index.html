@@ -555,6 +555,10 @@
         <h3 id="titleActPace">Pace (Laufen)</h3>
         <canvas id="chartActPace"></canvas>
       </div>
+      <div class="chart-box">
+        <h3 id="titleActPaceHr">Pace vs. Puls (Laufen)</h3>
+        <canvas id="chartActPaceHr"></canvas>
+      </div>
       <div class="chart-box" id="elevSection" style="display:none;">
         <h3 id="titleActElev">Hoehenmeter</h3>
         <canvas id="chartActElev"></canvas>
@@ -1500,6 +1504,109 @@ function buildActivitySection(acts, zeitraumText) {
         }
       });
       activeCharts.push(cPace);
+    }
+  }
+
+  // --- Chart: Pace vs. Puls Vergleich (Dual-Axis) ---
+  if (hasPace && hasHr) {
+    // Pace nur fuer Lauf-Monate berechnen
+    var paceHrMonths = monthKeys.filter(function(m) { return months[m].pace_count > 0; });
+    var paceHrLabels = paceHrMonths.map(formatMonthLabel);
+    var paceVals = paceHrMonths.map(function(m) {
+      return Math.round(months[m].pace_sum / months[m].pace_count * 100) / 100;
+    });
+    // HR fuer Lauf-Aktivitaeten: brauchen wir separat
+    var runHrMonths = {};
+    acts.forEach(function(a) {
+      if (runTypes.indexOf(a.type) >= 0 && a.distance_km > 0 && a.avg_hr > 0) {
+        var m = a.date.substring(0, 7);
+        if (!runHrMonths[m]) runHrMonths[m] = { sum: 0, count: 0 };
+        runHrMonths[m].sum += a.avg_hr;
+        runHrMonths[m].count++;
+      }
+    });
+    var hrVals = paceHrMonths.map(function(m) {
+      return runHrMonths[m] ? Math.round(runHrMonths[m].sum / runHrMonths[m].count) : null;
+    });
+
+    var ctxPH = document.getElementById('chartActPaceHr');
+    if (ctxPH) {
+      document.getElementById('titleActPaceHr').textContent = 'Pace vs. Puls (Laufen) ' + zeitraumText;
+      var cPH = new Chart(ctxPH, {
+        type: 'line',
+        data: {
+          labels: paceHrLabels,
+          datasets: [
+            {
+              label: 'Pace (min/km)',
+              data: paceVals,
+              borderColor: '#22d3ee',
+              backgroundColor: 'rgba(34, 211, 238, 0.1)',
+              fill: false,
+              yAxisID: 'yPace',
+              pointRadius: paceHrMonths.length <= 24 ? 4 : 2,
+              pointBackgroundColor: '#22d3ee',
+              tension: 0.3,
+            },
+            {
+              label: 'Ø Puls (bpm)',
+              data: hrVals,
+              borderColor: '#f87171',
+              backgroundColor: 'rgba(248, 113, 113, 0.1)',
+              fill: false,
+              yAxisID: 'yHr',
+              pointRadius: paceHrMonths.length <= 24 ? 4 : 2,
+              pointBackgroundColor: '#f87171',
+              tension: 0.3,
+            }
+          ]
+        },
+        options: {
+          scales: {
+            yPace: {
+              type: 'linear',
+              position: 'left',
+              reverse: true,
+              beginAtZero: false,
+              grid: { color: 'rgba(255,255,255,0.05)' },
+              title: { display: true, text: 'min/km', color: '#22d3ee' },
+              ticks: {
+                color: '#22d3ee',
+                callback: function(val) {
+                  var m = Math.floor(val); var s = Math.round((val - m) * 60);
+                  return m + ':' + (s < 10 ? '0' : '') + s;
+                }
+              }
+            },
+            yHr: {
+              type: 'linear',
+              position: 'right',
+              beginAtZero: false,
+              grid: { drawOnChartArea: false },
+              title: { display: true, text: 'bpm', color: '#f87171' },
+              ticks: { color: '#f87171' }
+            },
+            x: { grid: { display: false }, ticks: { maxTicksLimit: ticks } }
+          },
+          plugins: {
+            legend: { display: true, labels: { boxWidth: 12 } },
+            tooltip: {
+              backgroundColor: '#1a1d27', borderColor: '#2a2d3a', borderWidth: 1,
+              callbacks: {
+                label: function(item) {
+                  if (item.dataset.yAxisID === 'yPace') {
+                    var val = item.raw;
+                    var m = Math.floor(val); var s = Math.round((val - m) * 60);
+                    return 'Pace: ' + m + ':' + (s < 10 ? '0' : '') + s + ' min/km';
+                  }
+                  return 'Puls: ' + Math.round(item.raw) + ' bpm';
+                }
+              }
+            }
+          }
+        }
+      });
+      activeCharts.push(cPH);
     }
   }
 
