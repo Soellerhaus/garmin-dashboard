@@ -559,10 +559,6 @@
         <h3 id="titleActPaceHr">Pace vs. Puls (Laufen)</h3>
         <canvas id="chartActPaceHr"></canvas>
       </div>
-      <div class="chart-box" id="llPaceSection" style="display:none;">
-        <h3 id="titleLlPace">Pace (Langlauf)</h3>
-        <canvas id="chartLlPace"></canvas>
-      </div>
       <div class="chart-box" id="llPaceHrSection" style="display:none;">
         <h3 id="titleLlPaceHr">Pace vs. Puls (Langlauf)</h3>
         <canvas id="chartLlPaceHr"></canvas>
@@ -1780,53 +1776,9 @@ function buildActivitySection(acts, zeitraumText) {
   });
   var hasLlPace = llPaceData.some(function(v) { return v != null; });
 
-  var llPaceSection = document.getElementById('llPaceSection');
   var llPaceHrSection = document.getElementById('llPaceHrSection');
 
   if (hasLlPace) {
-    llPaceSection.style.display = '';
-    document.getElementById('titleLlPace').textContent = 'Ø Pace Langlauf ' + zeitraumText;
-    var ctxLlPace = document.getElementById('chartLlPace');
-    if (ctxLlPace) {
-      var cLlPace = new Chart(ctxLlPace, {
-        type: 'line',
-        data: {
-          labels: monthLabels,
-          datasets: [{
-            data: llPaceData,
-            borderColor: 'rgba(34, 211, 238, 0.35)',
-            backgroundColor: 'rgba(34, 211, 238, 0.1)',
-            fill: true,
-            spanGaps: true,
-            borderWidth: 1,
-            pointRadius: mCount <= 24 ? 3 : 1,
-            pointBackgroundColor: 'rgba(34, 211, 238, 0.5)',
-            tension: 0.3,
-          },
-          trendLineMonthly(llPaceData, '#22d3ee') || { data: [] }
-          ].filter(function(d) { return d.data && d.data.length > 0; })
-        },
-        options: {
-          scales: {
-            y: {
-              reverse: true, beginAtZero: false,
-              grid: { color: 'rgba(255,255,255,0.05)' },
-              title: { display: true, text: 'min/km' },
-              ticks: { callback: function(val) { var m=Math.floor(val); var s=Math.round((val-m)*60); return m+':'+(s<10?'0':'')+s; } }
-            },
-            x: { grid: { display: false }, ticks: { maxTicksLimit: ticks } }
-          },
-          plugins: {
-            legend: { display: true, labels: { boxWidth: 12 } },
-            tooltip: { backgroundColor: '#1a1d27', borderColor: '#2a2d3a', borderWidth: 1,
-              callbacks: { label: function(item) { var val=item.raw; if(val==null) return ''; var m=Math.floor(val); var s=Math.round((val-m)*60); return m+':'+(s<10?'0':'')+s+' min/km'; } }
-            }
-          }
-        }
-      });
-      activeCharts.push(cLlPace);
-    }
-
     // --- Chart: Langlauf Pace vs. Puls ---
     var llPaceHrMonths = monthKeys.filter(function(m) { return months[m].ll_pace_count > 0; });
     var llPaceHrLabels = llPaceHrMonths.map(formatMonthLabel);
@@ -1894,7 +1846,6 @@ function buildActivitySection(acts, zeitraumText) {
       llPaceHrSection.style.display = 'none';
     }
   } else {
-    llPaceSection.style.display = 'none';
     llPaceHrSection.style.display = 'none';
   }
 
