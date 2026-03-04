@@ -552,7 +552,7 @@
         <canvas id="chartActKm"></canvas>
       </div>
       <div class="chart-box">
-        <h3 id="titleActPace">Pace (Laufen)</h3>
+        <h3 id="titleActPace">Pace (Laufen & Langlauf)</h3>
         <canvas id="chartActPace"></canvas>
       </div>
       <div class="chart-box">
@@ -1456,7 +1456,7 @@ function buildActivitySection(acts, zeitraumText) {
   });
 
   // --- Monatliche Aggregation ---
-  var runTypes = ['trail_running', 'running'];
+  var runTypes = ['trail_running', 'running', 'skate_skiing_ws', 'cross_country_skiing_ws'];
   var months = {};
   acts.forEach(function(a) {
     var m = a.date.substring(0, 7);
@@ -1483,7 +1483,7 @@ function buildActivitySection(acts, zeitraumText) {
   // Titel aktualisieren
   document.getElementById('titleActHr').textContent = 'Ø Puls bei Aktivitaeten ' + zeitraumText;
   document.getElementById('titleActKm').textContent = 'Distanz pro Monat ' + zeitraumText;
-  document.getElementById('titleActPace').textContent = 'Ø Pace Laufen ' + zeitraumText;
+  document.getElementById('titleActPace').textContent = 'Ø Pace Laufen & Langlauf ' + zeitraumText;
   document.getElementById('titleActCal').textContent = 'Kalorienverbrauch pro Monat ' + zeitraumText;
 
   // --- Chart: Durchschnittspuls ---
