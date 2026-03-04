@@ -1475,7 +1475,7 @@ function buildActivitySection(acts, zeitraumText) {
       months[m].hr_count++;
     }
     if (a.distance_km) months[m].km += a.distance_km;
-    if (a.elevation_gain) months[m].elev += a.elevation_gain;
+    if (a.elevation_gain && a.type !== 'resort_skiing') months[m].elev += a.elevation_gain;
     if (a.calories) months[m].cal += a.calories;
     // Pace nur fuer Lauf-Aktivitaeten
     if (runTypes.indexOf(a.type) >= 0 && a.distance_km > 0 && a.duration_minutes > 0) {
