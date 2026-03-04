@@ -552,12 +552,20 @@
         <canvas id="chartActKm"></canvas>
       </div>
       <div class="chart-box">
-        <h3 id="titleActPace">Pace (Laufen & Langlauf)</h3>
+        <h3 id="titleActPace">Pace (Laufen)</h3>
         <canvas id="chartActPace"></canvas>
       </div>
       <div class="chart-box">
         <h3 id="titleActPaceHr">Pace vs. Puls (Laufen)</h3>
         <canvas id="chartActPaceHr"></canvas>
+      </div>
+      <div class="chart-box" id="llPaceSection" style="display:none;">
+        <h3 id="titleLlPace">Pace (Langlauf)</h3>
+        <canvas id="chartLlPace"></canvas>
+      </div>
+      <div class="chart-box" id="llPaceHrSection" style="display:none;">
+        <h3 id="titleLlPaceHr">Pace vs. Puls (Langlauf)</h3>
+        <canvas id="chartLlPaceHr"></canvas>
       </div>
       <div class="chart-box" id="elevSection" style="display:none;">
         <h3 id="titleActElev">Hoehenmeter</h3>
@@ -1456,11 +1464,12 @@ function buildActivitySection(acts, zeitraumText) {
   });
 
   // --- Monatliche Aggregation ---
-  var runTypes = ['trail_running', 'running', 'skate_skiing_ws', 'cross_country_skiing_ws'];
+  var runTypes = ['trail_running', 'running'];
+  var llTypes = ['skate_skiing_ws', 'cross_country_skiing_ws'];
   var months = {};
   acts.forEach(function(a) {
     var m = a.date.substring(0, 7);
-    if (!months[m]) months[m] = { hr_sum: 0, hr_count: 0, km: 0, elev: 0, cal: 0, pace_sum: 0, pace_count: 0 };
+    if (!months[m]) months[m] = { hr_sum: 0, hr_count: 0, km: 0, elev: 0, cal: 0, pace_sum: 0, pace_count: 0, ll_pace_sum: 0, ll_pace_count: 0 };
     if (a.distance_km > 0 && a.avg_hr > 0) {
       months[m].hr_sum += a.avg_hr;
       months[m].hr_count++;
@@ -1473,6 +1482,11 @@ function buildActivitySection(acts, zeitraumText) {
       months[m].pace_sum += a.duration_minutes / a.distance_km;
       months[m].pace_count++;
     }
+    // Pace fuer Langlauf
+    if (llTypes.indexOf(a.type) >= 0 && a.distance_km > 0 && a.duration_minutes > 0) {
+      months[m].ll_pace_sum += a.duration_minutes / a.distance_km;
+      months[m].ll_pace_count++;
+    }
   });
 
   var monthKeys = Object.keys(months).sort();
@@ -1483,7 +1497,7 @@ function buildActivitySection(acts, zeitraumText) {
   // Titel aktualisieren
   document.getElementById('titleActHr').textContent = 'Ø Puls bei Aktivitaeten ' + zeitraumText;
   document.getElementById('titleActKm').textContent = 'Distanz pro Monat ' + zeitraumText;
-  document.getElementById('titleActPace').textContent = 'Ø Pace Laufen & Langlauf ' + zeitraumText;
+  document.getElementById('titleActPace').textContent = 'Ø Pace Laufen ' + zeitraumText;
   document.getElementById('titleActCal').textContent = 'Kalorienverbrauch pro Monat ' + zeitraumText;
 
   // --- Chart: Durchschnittspuls ---
@@ -1758,6 +1772,130 @@ function buildActivitySection(acts, zeitraumText) {
     }
   } else {
     elevSection.style.display = 'none';
+  }
+
+  // --- Chart: Langlauf Pace ---
+  var llPaceData = monthKeys.map(function(m) {
+    return months[m].ll_pace_count > 0 ? Math.round(months[m].ll_pace_sum / months[m].ll_pace_count * 100) / 100 : null;
+  });
+  var hasLlPace = llPaceData.some(function(v) { return v != null; });
+
+  var llPaceSection = document.getElementById('llPaceSection');
+  var llPaceHrSection = document.getElementById('llPaceHrSection');
+
+  if (hasLlPace) {
+    llPaceSection.style.display = '';
+    document.getElementById('titleLlPace').textContent = 'Ø Pace Langlauf ' + zeitraumText;
+    var ctxLlPace = document.getElementById('chartLlPace');
+    if (ctxLlPace) {
+      var cLlPace = new Chart(ctxLlPace, {
+        type: 'line',
+        data: {
+          labels: monthLabels,
+          datasets: [{
+            data: llPaceData,
+            borderColor: 'rgba(34, 211, 238, 0.35)',
+            backgroundColor: 'rgba(34, 211, 238, 0.1)',
+            fill: true,
+            spanGaps: true,
+            borderWidth: 1,
+            pointRadius: mCount <= 24 ? 3 : 1,
+            pointBackgroundColor: 'rgba(34, 211, 238, 0.5)',
+            tension: 0.3,
+          },
+          trendLineMonthly(llPaceData, '#22d3ee') || { data: [] }
+          ].filter(function(d) { return d.data && d.data.length > 0; })
+        },
+        options: {
+          scales: {
+            y: {
+              reverse: true, beginAtZero: false,
+              grid: { color: 'rgba(255,255,255,0.05)' },
+              title: { display: true, text: 'min/km' },
+              ticks: { callback: function(val) { var m=Math.floor(val); var s=Math.round((val-m)*60); return m+':'+(s<10?'0':'')+s; } }
+            },
+            x: { grid: { display: false }, ticks: { maxTicksLimit: ticks } }
+          },
+          plugins: {
+            legend: { display: true, labels: { boxWidth: 12 } },
+            tooltip: { backgroundColor: '#1a1d27', borderColor: '#2a2d3a', borderWidth: 1,
+              callbacks: { label: function(item) { var val=item.raw; if(val==null) return ''; var m=Math.floor(val); var s=Math.round((val-m)*60); return m+':'+(s<10?'0':'')+s+' min/km'; } }
+            }
+          }
+        }
+      });
+      activeCharts.push(cLlPace);
+    }
+
+    // --- Chart: Langlauf Pace vs. Puls ---
+    var llPaceHrMonths = monthKeys.filter(function(m) { return months[m].ll_pace_count > 0; });
+    var llPaceHrLabels = llPaceHrMonths.map(formatMonthLabel);
+    var llPaceVals = llPaceHrMonths.map(function(m) {
+      return Math.round(months[m].ll_pace_sum / months[m].ll_pace_count * 100) / 100;
+    });
+    var llHrMonths = {};
+    acts.forEach(function(a) {
+      if (llTypes.indexOf(a.type) >= 0 && a.distance_km > 0 && a.avg_hr > 0) {
+        var m = a.date.substring(0, 7);
+        if (!llHrMonths[m]) llHrMonths[m] = { sum: 0, count: 0 };
+        llHrMonths[m].sum += a.avg_hr;
+        llHrMonths[m].count++;
+      }
+    });
+    var llHrVals = llPaceHrMonths.map(function(m) {
+      return llHrMonths[m] ? Math.round(llHrMonths[m].sum / llHrMonths[m].count) : null;
+    });
+    var hasLlHr = llHrVals.some(function(v) { return v != null; });
+
+    if (hasLlHr) {
+      llPaceHrSection.style.display = '';
+      document.getElementById('titleLlPaceHr').textContent = 'Pace vs. Puls (Langlauf) ' + zeitraumText;
+      var ctxLlPH = document.getElementById('chartLlPaceHr');
+      if (ctxLlPH) {
+        var cLlPH = new Chart(ctxLlPH, {
+          type: 'line',
+          data: {
+            labels: llPaceHrLabels,
+            datasets: [
+              { label: 'Pace (min/km)', data: llPaceVals, borderColor: '#22d3ee', fill: false, yAxisID: 'yPace',
+                pointRadius: llPaceHrMonths.length <= 24 ? 4 : 2, pointBackgroundColor: '#22d3ee', tension: 0.3 },
+              { label: 'Ø Puls (bpm)', data: llHrVals, borderColor: '#f87171', fill: false, yAxisID: 'yHr',
+                pointRadius: llPaceHrMonths.length <= 24 ? 4 : 2, pointBackgroundColor: '#f87171', tension: 0.3 }
+            ]
+          },
+          options: {
+            scales: {
+              yPace: { type: 'linear', position: 'left', reverse: true, beginAtZero: false,
+                grid: { color: 'rgba(255,255,255,0.05)' },
+                title: { display: true, text: 'min/km', color: '#22d3ee' },
+                ticks: { color: '#22d3ee', callback: function(val) { var m=Math.floor(val); var s=Math.round((val-m)*60); return m+':'+(s<10?'0':'')+s; } }
+              },
+              yHr: { type: 'linear', position: 'right', beginAtZero: false,
+                grid: { drawOnChartArea: false },
+                title: { display: true, text: 'bpm', color: '#f87171' },
+                ticks: { color: '#f87171' }
+              },
+              x: { grid: { display: false }, ticks: { maxTicksLimit: ticks } }
+            },
+            plugins: {
+              legend: { display: true, labels: { boxWidth: 12 } },
+              tooltip: { backgroundColor: '#1a1d27', borderColor: '#2a2d3a', borderWidth: 1,
+                callbacks: { label: function(item) {
+                  if (item.dataset.yAxisID === 'yPace') { var val=item.raw; var m=Math.floor(val); var s=Math.round((val-m)*60); return 'Pace: '+m+':'+(s<10?'0':'')+s+' min/km'; }
+                  return 'Puls: '+Math.round(item.raw)+' bpm';
+                }}
+              }
+            }
+          }
+        });
+        activeCharts.push(cLlPH);
+      }
+    } else {
+      llPaceHrSection.style.display = 'none';
+    }
+  } else {
+    llPaceSection.style.display = 'none';
+    llPaceHrSection.style.display = 'none';
   }
 
   // --- Chart: Kalorienverbrauch pro Monat ---
