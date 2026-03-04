@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-03-04T06:29:57",
+  "last_updated": "2026-03-04T07:31:52",
   "daily": [
     {
       "date": "2022-01-01",
@@ -31988,7 +31988,7 @@
       "date": "2026-03-04",
       "resting_hr": 44,
       "hr_min": 44,
-      "hr_max": 79,
+      "hr_max": 80,
       "hr_avg": null,
       "hrv": 49,
       "sleep_duration_hours": 8.8,
@@ -32000,7 +32000,7 @@
       "body_battery_max": 100,
       "stress_avg": 13,
       "stress_max": 60,
-      "steps": 541,
+      "steps": 1172,
       "spo2_avg": null,
       "calories_total": null,
       "calories_active": null
@@ -32010,7 +32010,7 @@
     {
       "date": "2026-03-03",
       "type": "strength_training",
-      "name": "30-Minuten-Kracher",
+      "name": "Claude Training Oberkörper beine",
       "duration_minutes": 54.0,
       "distance_km": null,
       "avg_hr": 78.0,
