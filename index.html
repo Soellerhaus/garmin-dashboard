@@ -1181,10 +1181,20 @@ function buildDashboard(days) {
     smoothData(daily.map(function(d) { return d.sleep_score; }), count),
     '#a78bfa', 'rgba(167, 139, 250, 0.1)', count, true);
 
-  // ── Chart 5: Body Battery ────────────────────────────
-  createLineChart('chartBattery', labels,
-    smoothData(daily.map(function(d) { return d.body_battery_max || d.body_battery_start; }), count),
-    '#4ade80', 'rgba(74, 222, 128, 0.1)', count);
+  // ── Chart 5: Body Battery (nur ab ersten Daten anzeigen) ───
+  (function() {
+    var bbData = daily.map(function(d) { return d.body_battery_max || d.body_battery_start; });
+    // Fuehrende Nullwerte abschneiden
+    var startIdx = bbData.findIndex(function(v) { return v != null; });
+    if (startIdx < 0) return; // keine Daten
+    var bbTrimmed = bbData.slice(startIdx);
+    var bbLabels = labels.slice(startIdx);
+    var bbCount = bbTrimmed.length;
+    document.getElementById('titleBattery').textContent = 'Body Battery (' + bbCount + ' Tage)';
+    createLineChart('chartBattery', bbLabels,
+      smoothData(bbTrimmed, bbCount),
+      '#4ade80', 'rgba(74, 222, 128, 0.1)', bbCount, true);
+  })();
 
   // ── Chart 6: Stress (mit Durchschnittslinie) ─────────
   createLineChart('chartStress', labels,
@@ -1849,7 +1859,11 @@ function applyDateRange() {
   createLineChart('chartHr', labels, smoothData(daily.map(function(d){return d.resting_hr;}), count), '#f87171', 'rgba(248,113,113,0.1)', count, true);
   createLineChart('chartHrv', labels, smoothData(daily.map(function(d){return d.hrv;}), count), '#6c8cff', 'rgba(108,140,255,0.1)', count, true);
   createLineChart('chartSleepScore', labels, smoothData(daily.map(function(d){return d.sleep_score;}), count), '#a78bfa', 'rgba(167,139,250,0.1)', count, true);
-  createLineChart('chartBattery', labels, smoothData(daily.map(function(d){return d.body_battery_max||d.body_battery_start;}), count), '#4ade80', 'rgba(74,222,128,0.1)', count);
+  (function(){
+    var bbD=daily.map(function(d){return d.body_battery_max||d.body_battery_start;});
+    var si=bbD.findIndex(function(v){return v!=null;});
+    if(si>=0){var bL=labels.slice(si),bD=bbD.slice(si),bC=bD.length;createLineChart('chartBattery',bL,smoothData(bD,bC),'#4ade80','rgba(74,222,128,0.1)',bC,true);}
+  })();
   createLineChart('chartStress', labels, smoothData(daily.map(function(d){return d.stress_avg;}), count), '#fb923c', 'rgba(251,146,60,0.1)', count, true);
 
   buildWeightCharts(-1, fromDate, toDate);
