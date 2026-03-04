@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-03-04T14:30:23",
+  "last_updated": "2026-03-04T15:30:48",
   "daily": [
     {
       "date": "2022-01-01",
@@ -31996,17 +31996,27 @@
       "deep_sleep_pct": 22,
       "light_sleep_pct": 59,
       "rem_sleep_pct": 19,
-      "body_battery_min": 67,
+      "body_battery_min": 51,
       "body_battery_max": 100,
-      "stress_avg": 16,
-      "stress_max": 65,
-      "steps": 9386,
+      "stress_avg": 21,
+      "stress_max": 85,
+      "steps": 12054,
       "spo2_avg": null,
       "calories_total": null,
       "calories_active": null
     }
   ],
   "activities": [
+    {
+      "date": "2026-03-04",
+      "type": "yoga",
+      "name": "Yoga",
+      "duration_minutes": 6.2,
+      "distance_km": null,
+      "avg_hr": 74.0,
+      "calories": 17.0,
+      "elevation_gain": null
+    },
     {
       "date": "2026-03-04",
       "type": "skate_skiing_ws",
