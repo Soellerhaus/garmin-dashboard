@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-03-06T09:30:27",
+  "last_updated": "2026-03-06T10:30:50",
   "daily": [
     {
       "date": "2022-01-01",
@@ -32049,6 +32049,16 @@
     }
   ],
   "activities": [
+    {
+      "date": "2026-03-06",
+      "type": "yoga",
+      "name": "Yoga",
+      "duration_minutes": 12.4,
+      "distance_km": null,
+      "avg_hr": 91.0,
+      "calories": 61.0,
+      "elevation_gain": null
+    },
     {
       "date": "2026-03-06",
       "type": "trail_running",
