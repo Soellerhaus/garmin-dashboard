@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-03-06T08:30:24",
+  "last_updated": "2026-03-06T09:30:27",
   "daily": [
     {
       "date": "2022-01-01",
@@ -32030,7 +32030,7 @@
       "date": "2026-03-06",
       "resting_hr": 46,
       "hr_min": 45,
-      "hr_max": 80,
+      "hr_max": 159,
       "hr_avg": null,
       "hrv": 42,
       "sleep_duration_hours": 8.7,
@@ -32038,17 +32038,27 @@
       "deep_sleep_pct": 23,
       "light_sleep_pct": 52,
       "rem_sleep_pct": 25,
-      "body_battery_min": 69,
+      "body_battery_min": 67,
       "body_battery_max": 98,
-      "stress_avg": 15,
+      "stress_avg": 16,
       "stress_max": 60,
-      "steps": 127,
+      "steps": 14266,
       "spo2_avg": null,
       "calories_total": null,
       "calories_active": null
     }
   ],
   "activities": [
+    {
+      "date": "2026-03-06",
+      "type": "trail_running",
+      "name": "Mittelberg Trailrunning",
+      "duration_minutes": 85.2,
+      "distance_km": 12.53,
+      "avg_hr": 140.0,
+      "calories": 1079.0,
+      "elevation_gain": 428
+    },
     {
       "date": "2026-03-05",
       "type": "resort_skiing",
