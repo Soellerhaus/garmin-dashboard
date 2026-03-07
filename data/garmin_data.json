@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-03-07T11:30:22",
+  "last_updated": "2026-03-07T12:34:53",
   "daily": [
     {
       "date": "2022-01-01",
@@ -32061,15 +32061,25 @@
       "rem_sleep_pct": 13,
       "body_battery_min": 52,
       "body_battery_max": 94,
-      "stress_avg": 16,
+      "stress_avg": 18,
       "stress_max": 79,
-      "steps": 9083,
+      "steps": 9509,
       "spo2_avg": null,
       "calories_total": null,
       "calories_active": null
     }
   ],
   "activities": [
+    {
+      "date": "2026-03-07",
+      "type": "strength_training",
+      "name": "claude kw 10",
+      "duration_minutes": 59.6,
+      "distance_km": null,
+      "avg_hr": 73.0,
+      "calories": 165.0,
+      "elevation_gain": null
+    },
     {
       "date": "2026-03-07",
       "type": "trail_running",
