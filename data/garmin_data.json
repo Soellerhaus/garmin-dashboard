@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-03-07T20:30:27",
+  "last_updated": "2026-03-07T21:30:39",
   "daily": [
     {
       "date": "2022-01-01",
@@ -32059,11 +32059,11 @@
       "deep_sleep_pct": 16,
       "light_sleep_pct": 71,
       "rem_sleep_pct": 13,
-      "body_battery_min": 52,
+      "body_battery_min": 43,
       "body_battery_max": 94,
-      "stress_avg": 18,
+      "stress_avg": 20,
       "stress_max": 79,
-      "steps": 9509,
+      "steps": 13012,
       "spo2_avg": null,
       "calories_total": null,
       "calories_active": null
