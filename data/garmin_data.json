@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-03-07T09:30:44",
+  "last_updated": "2026-03-07T10:30:16",
   "daily": [
     {
       "date": "2022-01-01",
@@ -32051,7 +32051,7 @@
       "date": "2026-03-07",
       "resting_hr": 46,
       "hr_min": 45,
-      "hr_max": 82,
+      "hr_max": 153,
       "hr_avg": null,
       "hrv": 44,
       "sleep_duration_hours": 7.1,
@@ -32061,15 +32061,25 @@
       "rem_sleep_pct": 13,
       "body_battery_min": 52,
       "body_battery_max": 94,
-      "stress_avg": 15,
-      "stress_max": 60,
-      "steps": 613,
+      "stress_avg": 16,
+      "stress_max": 79,
+      "steps": 9083,
       "spo2_avg": null,
       "calories_total": null,
       "calories_active": null
     }
   ],
   "activities": [
+    {
+      "date": "2026-03-07",
+      "type": "trail_running",
+      "name": "Mittelberg Trailrunning",
+      "duration_minutes": 57.6,
+      "distance_km": 5.82,
+      "avg_hr": 122.0,
+      "calories": 553.0,
+      "elevation_gain": 243
+    },
     {
       "date": "2026-03-06",
       "type": "yoga",
