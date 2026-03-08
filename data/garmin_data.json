@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-03-08T10:30:15",
+  "last_updated": "2026-03-08T11:30:36",
   "daily": [
     {
       "date": "2022-01-01",
@@ -32072,7 +32072,7 @@
       "date": "2026-03-08",
       "resting_hr": 45,
       "hr_min": 44,
-      "hr_max": 81,
+      "hr_max": 107,
       "hr_avg": null,
       "hrv": 51,
       "sleep_duration_hours": 8.5,
@@ -32082,15 +32082,25 @@
       "rem_sleep_pct": 20,
       "body_battery_min": 74,
       "body_battery_max": 100,
-      "stress_avg": 12,
-      "stress_max": 63,
-      "steps": 302,
+      "stress_avg": 13,
+      "stress_max": 75,
+      "steps": 1544,
       "spo2_avg": null,
       "calories_total": null,
       "calories_active": null
     }
   ],
   "activities": [
+    {
+      "date": "2026-03-08",
+      "type": "resort_skiing",
+      "name": "Hirschegg Skifahren",
+      "duration_minutes": 163.9,
+      "distance_km": 32.58,
+      "avg_hr": 73.0,
+      "calories": 460.0,
+      "elevation_gain": 2760
+    },
     {
       "date": "2026-03-07",
       "type": "strength_training",
