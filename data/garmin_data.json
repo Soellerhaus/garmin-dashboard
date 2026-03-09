@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-03-09T08:31:06",
+  "last_updated": "2026-03-09T09:30:34",
   "daily": [
     {
       "date": "2022-01-01",
@@ -32093,7 +32093,7 @@
       "date": "2026-03-09",
       "resting_hr": 45,
       "hr_min": 44,
-      "hr_max": 77,
+      "hr_max": 158,
       "hr_avg": null,
       "hrv": 46,
       "sleep_duration_hours": 8.1,
@@ -32101,17 +32101,27 @@
       "deep_sleep_pct": 16,
       "light_sleep_pct": 61,
       "rem_sleep_pct": 23,
-      "body_battery_min": 72,
+      "body_battery_min": 70,
       "body_battery_max": 100,
       "stress_avg": 15,
       "stress_max": 66,
-      "steps": 2724,
+      "steps": 12745,
       "spo2_avg": null,
       "calories_total": null,
       "calories_active": null
     }
   ],
   "activities": [
+    {
+      "date": "2026-03-09",
+      "type": "trail_running",
+      "name": "Mittelberg - Bergblock 4Min",
+      "duration_minutes": 65.3,
+      "distance_km": 9.51,
+      "avg_hr": 138.0,
+      "calories": 830.0,
+      "elevation_gain": 398
+    },
     {
       "date": "2026-03-08",
       "type": "resort_skiing",
