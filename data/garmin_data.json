@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-03-09T19:31:18",
+  "last_updated": "2026-03-09T20:41:47",
   "daily": [
     {
       "date": "2022-01-01",
@@ -32112,6 +32112,16 @@
     }
   ],
   "activities": [
+    {
+      "date": "2026-03-09",
+      "type": "pilates",
+      "name": "15-minütiger Bauchmuskel-Burner",
+      "duration_minutes": 25.3,
+      "distance_km": null,
+      "avg_hr": 73.0,
+      "calories": 76.0,
+      "elevation_gain": null
+    },
     {
       "date": "2026-03-09",
       "type": "yoga",
