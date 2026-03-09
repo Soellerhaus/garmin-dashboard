@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-03-09T06:30:10",
+  "last_updated": "2026-03-09T07:31:07",
   "daily": [
     {
       "date": "2022-01-01",
@@ -32095,7 +32095,7 @@
       "hr_min": 44,
       "hr_max": 77,
       "hr_avg": null,
-      "hrv": null,
+      "hrv": 46,
       "sleep_duration_hours": 8.1,
       "sleep_score": 91,
       "deep_sleep_pct": 16,
