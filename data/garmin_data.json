@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-03-10T05:29:47",
+  "last_updated": "2026-03-10T06:30:19",
   "daily": [
     {
       "date": "2022-01-01",
@@ -32114,7 +32114,7 @@
       "date": "2026-03-10",
       "resting_hr": 45,
       "hr_min": 44,
-      "hr_max": 56,
+      "hr_max": 89,
       "hr_avg": null,
       "hrv": 52,
       "sleep_duration_hours": 7.7,
@@ -32123,10 +32123,10 @@
       "light_sleep_pct": 64,
       "rem_sleep_pct": 16,
       "body_battery_min": 68,
-      "body_battery_max": 99,
+      "body_battery_max": 100,
       "stress_avg": 13,
-      "stress_max": 33,
-      "steps": null,
+      "stress_max": 84,
+      "steps": 209,
       "spo2_avg": null,
       "calories_total": null,
       "calories_active": null
