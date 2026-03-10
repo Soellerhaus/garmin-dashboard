@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-03-10T23:31:24",
+  "last_updated": "2026-03-11T00:31:09",
   "daily": [
     {
       "date": "2022-01-01",
@@ -32122,11 +32122,32 @@
       "deep_sleep_pct": 19,
       "light_sleep_pct": 64,
       "rem_sleep_pct": 16,
-      "body_battery_min": 34,
+      "body_battery_min": 33,
       "body_battery_max": 100,
-      "stress_avg": 23,
+      "stress_avg": 22,
       "stress_max": 88,
-      "steps": 6216,
+      "steps": 6585,
+      "spo2_avg": null,
+      "calories_total": null,
+      "calories_active": null
+    },
+    {
+      "date": "2026-03-11",
+      "resting_hr": null,
+      "hr_min": null,
+      "hr_max": null,
+      "hr_avg": null,
+      "hrv": null,
+      "sleep_duration_hours": null,
+      "sleep_score": null,
+      "deep_sleep_pct": null,
+      "light_sleep_pct": null,
+      "rem_sleep_pct": null,
+      "body_battery_min": null,
+      "body_battery_max": null,
+      "stress_avg": null,
+      "stress_max": null,
+      "steps": null,
       "spo2_avg": null,
       "calories_total": null,
       "calories_active": null
