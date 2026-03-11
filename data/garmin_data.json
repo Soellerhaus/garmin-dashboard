@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-03-11T10:30:48",
+  "last_updated": "2026-03-11T11:30:51",
   "daily": [
     {
       "date": "2022-01-01",
@@ -32135,7 +32135,7 @@
       "date": "2026-03-11",
       "resting_hr": 46,
       "hr_min": 46,
-      "hr_max": 82,
+      "hr_max": 91,
       "hr_avg": null,
       "hrv": 49,
       "sleep_duration_hours": 8.0,
@@ -32145,15 +32145,25 @@
       "rem_sleep_pct": 23,
       "body_battery_min": 58,
       "body_battery_max": 95,
-      "stress_avg": 16,
-      "stress_max": 71,
-      "steps": 2080,
+      "stress_avg": 21,
+      "stress_max": 90,
+      "steps": 3929,
       "spo2_avg": null,
       "calories_total": null,
       "calories_active": null
     }
   ],
   "activities": [
+    {
+      "date": "2026-03-11",
+      "type": "yoga",
+      "name": "Yoga",
+      "duration_minutes": 30.9,
+      "distance_km": null,
+      "avg_hr": 78.0,
+      "calories": 89.0,
+      "elevation_gain": null
+    },
     {
       "date": "2026-03-10",
       "type": "strength_training",
