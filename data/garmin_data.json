@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-03-12T19:35:12",
+  "last_updated": "2026-03-12T20:31:55",
   "daily": [
     {
       "date": "2022-01-01",
@@ -32175,6 +32175,16 @@
     }
   ],
   "activities": [
+    {
+      "date": "2026-03-12",
+      "type": "pilates",
+      "name": "15-minütiger Bauchmuskel-Burner",
+      "duration_minutes": 45.4,
+      "distance_km": null,
+      "avg_hr": 62.0,
+      "calories": 93.0,
+      "elevation_gain": null
+    },
     {
       "date": "2026-03-12",
       "type": "skate_skiing_ws",
