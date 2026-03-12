@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-03-12T08:31:13",
+  "last_updated": "2026-03-12T09:31:39",
   "daily": [
     {
       "date": "2022-01-01",
@@ -32156,7 +32156,7 @@
       "date": "2026-03-12",
       "resting_hr": 44,
       "hr_min": 42,
-      "hr_max": 95,
+      "hr_max": 155,
       "hr_avg": null,
       "hrv": 50,
       "sleep_duration_hours": 7.8,
@@ -32166,15 +32166,25 @@
       "rem_sleep_pct": 25,
       "body_battery_min": 67,
       "body_battery_max": 100,
-      "stress_avg": 14,
+      "stress_avg": 15,
       "stress_max": 94,
-      "steps": 1276,
+      "steps": 7181,
       "spo2_avg": null,
       "calories_total": null,
       "calories_active": null
     }
   ],
   "activities": [
+    {
+      "date": "2026-03-12",
+      "type": "skate_skiing_ws",
+      "name": "Mittelberg Langlauf Freistil",
+      "duration_minutes": 62.0,
+      "distance_km": 13.94,
+      "avg_hr": 140.0,
+      "calories": 748.0,
+      "elevation_gain": 223
+    },
     {
       "date": "2026-03-11",
       "type": "yoga",
