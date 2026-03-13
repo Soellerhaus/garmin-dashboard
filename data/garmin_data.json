@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-03-13T07:30:51",
+  "last_updated": "2026-03-13T08:30:41",
   "daily": [
     {
       "date": "2022-01-01",
@@ -32177,7 +32177,7 @@
       "date": "2026-03-13",
       "resting_hr": 46,
       "hr_min": 45,
-      "hr_max": 79,
+      "hr_max": 153,
       "hr_avg": null,
       "hrv": 51,
       "sleep_duration_hours": 8.1,
@@ -32187,15 +32187,25 @@
       "rem_sleep_pct": 16,
       "body_battery_min": 71,
       "body_battery_max": 100,
-      "stress_avg": 15,
+      "stress_avg": 16,
       "stress_max": 69,
-      "steps": 252,
+      "steps": 11993,
       "spo2_avg": null,
       "calories_total": null,
       "calories_active": null
     }
   ],
   "activities": [
+    {
+      "date": "2026-03-13",
+      "type": "trail_running",
+      "name": "Mittelberg Trailrunning",
+      "duration_minutes": 70.7,
+      "distance_km": 10.28,
+      "avg_hr": 143.0,
+      "calories": 925.0,
+      "elevation_gain": 432
+    },
     {
       "date": "2026-03-12",
       "type": "pilates",
