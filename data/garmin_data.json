@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-03-14T10:30:52",
+  "last_updated": "2026-03-14T11:30:54",
   "daily": [
     {
       "date": "2022-01-01",
@@ -32198,7 +32198,7 @@
       "date": "2026-03-14",
       "resting_hr": 47,
       "hr_min": 45,
-      "hr_max": 86,
+      "hr_max": 97,
       "hr_avg": null,
       "hrv": 48,
       "sleep_duration_hours": 8.2,
@@ -32210,13 +32210,23 @@
       "body_battery_max": 95,
       "stress_avg": 15,
       "stress_max": 76,
-      "steps": 369,
+      "steps": 2444,
       "spo2_avg": null,
       "calories_total": null,
       "calories_active": null
     }
   ],
   "activities": [
+    {
+      "date": "2026-03-14",
+      "type": "strength_training",
+      "name": "30-Minuten-Kracher",
+      "duration_minutes": 61.6,
+      "distance_km": null,
+      "avg_hr": 76.0,
+      "calories": 185.0,
+      "elevation_gain": null
+    },
     {
       "date": "2026-03-13",
       "type": "trail_running",
